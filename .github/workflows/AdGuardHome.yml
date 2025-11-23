@@ -12,18 +12,19 @@ jobs:
           repository: openwrt/openwrt
           ref: openwrt-24.10
           fetch-depth: 0
+          path: openwrt  # Added this to checkout into a subdir
       - name: Checkout OpenWrt packages repo
         uses: actions/checkout@v4
         with:
           repository: openwrt/packages
           path: packages
-          ref: master  # Changed to master for latest AdGuardHome
+          ref: master  # Using master for latest AdGuardHome
           fetch-depth: 0
       - name: Copy AdGuardHome package into OpenWrt tree
         run: |
-          rm -rf package/net/adguardhome || true
-          mkdir -p package/net
-          cp -r packages/net/adguardhome package/net/
+          rm -rf openwrt/package/net/adguardhome || true
+          mkdir -p openwrt/package/net
+          cp -r packages/net/adguardhome openwrt/package/net/
       - name: Update AdGuardHome to latest version
         run: |
           cd openwrt
