@@ -1,4 +1,4 @@
-name: Build AdGuardHome for OpenWrt 24.10
+name: Build AdGuardHome for AX3000T OpenWrt 24.10
 
 on:
   workflow_dispatch:
@@ -13,6 +13,7 @@ jobs:
         with:
           repository: openwrt/openwrt
           ref: openwrt-24.10
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
@@ -23,19 +24,18 @@ jobs:
             python3-distutils python3-setuptools rsync unzip zlib1g-dev \
             file wget
 
+      - name: Clean config and prepare minimal config for AX3000T (Mediatek Filogic ARM64)
+        run: |
+          make distclean
+          echo "CONFIG_TARGET_mediatek_filogic=y" > .config
+          echo "CONFIG_TARGET_ARCH_PACKAGES=\"aarch64_cortex-a53\"" >> .config
+          echo "CONFIG_PACKAGE_adguardhome=m" >> .config
+          make defconfig
+
       - name: Update feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
-      - name: Generate default config
-        run: |
-          make defconfig
-
-      - name: Enable AdGuardHome package
-        run: |
-          sed -i 's/# CONFIG_PACKAGE_adguardhome is not set/CONFIG_PACKAGE_adguardhome=m/' .config || true
-          echo "CONFIG_PACKAGE_adguardhome=m" >> .config
 
       - name: Build toolchain
         run: |
@@ -48,7 +48,5 @@ jobs:
       - name: Upload built packages
         uses: actions/upload-artifact@v4
         with:
-          name: adguardhome-openwrt-24.10
-          path: |
-            bin/packages/**/adguardhome*.ipk
-            bin/targets/**/packages/adguardhome*.ipk
+          name: adguardhome-ax3000t-openwrt-24.10
+          path: bin/packages/aarch64_cortex-a53/*/adguardhome*.ipk
